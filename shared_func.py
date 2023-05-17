@@ -78,12 +78,48 @@ class Dataset:
             
         return self.data
 
-    
+def split_data(data, labels):
+    train_set = []
+    train_labels = []
+    test_set = []
+    test_labels = []
+
+    for user_id in range(10):
+
+        for i in range(10):
+            start = (user_id * 100) + (i * 10)
+            end = (user_id * 100) + (i * 10 + 7)
+            # Select 7 samples for the training set
+            train_samples = data[start:end]
+            
+            train_set.extend(train_samples)
+            train_labels.extend(labels[start:end])
+
+            start = (user_id * 100) + (i * 10 + 7)
+            end = (user_id * 100) + (i * 10 + 10)
+
+            # Select 3 samples for the test set
+            test_samples = data[start:end]
+           
+            test_set.extend(test_samples)
+            test_labels.extend(labels[start:end])
+
+    train_set = np.array(train_set, dtype = object)
+    train_labels = np.array(train_labels)
+    test_set = np.array(test_set,  dtype = object)
+    test_labels = np.array(test_labels)
+    return train_set, train_labels, test_set, test_labels
+
+
+
+
+
 
 def Leave_One_Out(user_id, dataset, labels, cross_validation_mode, LIMIT):
     # Split the dataset into train and test sets
     if cross_validation_mode == 1:
-        indexes = range(user_id * LIMIT, user_id * LIMIT + LIMIT)
+        indexes = range(LIMIT * user_id, LIMIT * user_id + LIMIT)
+        print(indexes)
         train_set = np.delete(dataset, indexes)
         train_labels = np.delete(labels, indexes)
         test_labels = labels[indexes]
@@ -99,7 +135,7 @@ def Leave_One_Out(user_id, dataset, labels, cross_validation_mode, LIMIT):
         train_labels = np.delete(labels, subset_indexes)
         test_labels = labels[subset_indexes]
         test_set = dataset[subset_indexes]
-        
+    
     return train_set,train_labels,test_labels,test_set
 
 def plot_conf_mat(true_labels, pred_labels, LIMIT):

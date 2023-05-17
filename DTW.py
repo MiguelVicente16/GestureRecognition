@@ -123,6 +123,7 @@ def test(user_id, data, labels, model, cross_validation_mode,LIMIT):
 
     # Fit the model to the train set and make predictions on the test set
     model.fit(train_set, train_labels)
+
     predictions = model.predict(test_set)
 
     # Calculate the accuracy score and return it along with the predictions
@@ -154,8 +155,14 @@ def validation(dataset, labels, model, cross_validation_mode, LIMIT):
         predictions.append(prediction)
         print("The user score {}: {}".format(user_id+1, accuracies[-1]))
 
-    return accuracies, predictions
+    return
 
+def model_test(model, test_set_data, test_set_labels):
+    
+    predictions = model.predict(test_set_data)
+    accuracy = accuracy_score(test_set_labels, predictions)
+    print("The model score is: {}".format(accuracy))
+    return accuracy, predictions
 
 """"""""""""""""""""
 #      Launch     #
@@ -168,9 +175,14 @@ if __name__ == '__main__':
   dataset = shared_func.Dataset()
   
   model = DTW(n_neighbors=3)
-  data = shared_func.PCA_variance(dataset.data)
-  data = np.array(dataset.data, dtype=object)
+  data = dataset.data
+  train_set_data, train_set_labels, test_set_data, test_set_labels = shared_func.split_data(data, dataset.labels)
 
-  accuracies, predictions = validation(data, dataset.labels, model, cross_validation_mode, LIMIT=100)
+  print(len(train_set_data))
+  print(len(train_set_labels))
+  validation(train_set_data, train_set_labels, model, cross_validation_mode, LIMIT=70)
+  
+  predictions = model_test(model,train_set_data,test_set_data)
+
   # plot the confusion matrix of the 3-NN model 
-  shared_func.plot_conf_mat(np.array(dataset.labels), predictions, LIMIT=100)
+  shared_func.plot_conf_mat(np.array(test_set_labels), predictions, LIMIT= 30)

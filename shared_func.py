@@ -1,7 +1,7 @@
 import numpy as np
 import csv
-from sklearn.decomposition import PCA
 from dollarpy import Point
+from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
 import pandas as pd
@@ -12,7 +12,7 @@ import seaborn as sn
 #######################
 
 class Dataset:
-    def __init__(self, domain=1):
+    def __init__(self, domain, nr_model):
         # Initialize the dataset structure
         self.dataset = [[[] for _ in range(10)] for _ in range(10)]  # A 2D list to store user data by subject and digit
         self.data = []  # List to store all user data
@@ -49,7 +49,8 @@ class Dataset:
                             self.dataset[user_id - 1][class_id].append(user_data)
                             self.data.append(user_data)
                             self.labels.append(class_id)
-                            self.data = self.standardize_data_columns()
+                            if nr_model == 0:
+                                self.data = self.standardize_data_columns()
                     except IOError as e:
                         print("Unable to read dataset file {}!\n".format(filepath))
     
@@ -88,14 +89,14 @@ def split_data(data, labels):
 
         for i in range(10):
             start = (user_id * 100) + (i * 10)
-            end = (user_id * 100) + (i * 10 + 7)
+            end = (user_id * 100) + (i * 10 + 8)
             # Select 7 samples for the training set
             train_samples = data[start:end]
             
             train_set.extend(train_samples)
             train_labels.extend(labels[start:end])
 
-            start = (user_id * 100) + (i * 10 + 7)
+            start = (user_id * 100) + (i * 10 + 8)
             end = (user_id * 100) + (i * 10 + 10)
 
             # Select 3 samples for the test set
@@ -110,16 +111,24 @@ def split_data(data, labels):
     test_labels = np.array(test_labels)
     return train_set, train_labels, test_set, test_labels
 
-
-
-
+def PCA_variance(data): 
+    pca_variances = []
+    final_dataset = []
+    for user_data in data:
+        pca = PCA(n_components=2)
+        new_data = pca.fit_transform(user_data)
+        twod_data = [Point(*row) for row in new_data]
+        final_dataset.append(twod_data)
+        pca_variances.append(pca.explained_variance_ratio_)
+    #data = np.array(final_dataset, dtype='object')
+    print("The average explained variance ratio is over all the dataset: ", np.mean(pca_variances, axis=0))
+    return final_dataset
 
 
 def Leave_One_Out(user_id, dataset, labels, cross_validation_mode, LIMIT):
     # Split the dataset into train and test sets
     if cross_validation_mode == 1:
         indexes = range(LIMIT * user_id, LIMIT * user_id + LIMIT)
-        print(indexes)
         train_set = np.delete(dataset, indexes)
         train_labels = np.delete(labels, indexes)
         test_labels = labels[indexes]
@@ -138,29 +147,15 @@ def Leave_One_Out(user_id, dataset, labels, cross_validation_mode, LIMIT):
     
     return train_set,train_labels,test_labels,test_set
 
-def plot_conf_mat(true_labels, pred_labels, LIMIT):
-    for user_id in range(len(pred_labels)):
-        print("The confusion matrix of user:", user_id+1)
-        indexes = range(user_id * LIMIT, user_id * LIMIT + LIMIT)
-        conf_mat = confusion_matrix(true_labels[indexes], pred_labels[user_id])
-        df_cm = pd.DataFrame(conf_mat, index=range(10), columns=range(10))
-        plt.figure(figsize=(10, 7))
-        sn.heatmap(df_cm, annot=True, fmt='d', cmap='Blues', cbar=False)
-        plt.xlabel("Predicted label")
-        plt.ylabel("True label")
-        plt.title("Confusion Matrix of User {}".format(user_id+1))
-        plt.show()
-
-def PCA_variance(data):
-
-    pca_variances = []
-    final_dataset = []
-    for user_data in data:
-        pca = PCA(n_components=2)
-        new_data = pca.fit_transform(user_data)
-        twod_data = [Point(*row) for row in new_data]
-        final_dataset.append(twod_data)
-        pca_variances.append(pca.explained_variance_ratio_)
-    data = np.array(final_dataset, dtype='object')
-    print("The average explained variance ratio is over all the dataset: ", np.mean(pca_variances, axis=0))
-    return data
+def plot_conf_mat(true_labels, pred_labels):
+    print("The confusion matrix of the model:")
+    indexes = range(0, len(pred_labels))
+    conf_mat = confusion_matrix(true_labels[indexes], pred_labels[indexes])
+    df_cm = pd.DataFrame(conf_mat, index=range(10), columns=range(10))
+    plt.figure(figsize=(10, 7))
+    sn.heatmap(df_cm, annot=True, fmt='d', cmap='Blues', cbar=False)
+    plt.xlabel("Predicted label")
+    plt.ylabel("True label")
+    plt.title("Confusion Matrix of the model")
+    plt.show()
+    return

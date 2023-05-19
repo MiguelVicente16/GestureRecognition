@@ -2,6 +2,9 @@ import numpy as np
 from sklearn.metrics import accuracy_score, confusion_matrix
 from scipy.stats import mode
 import shared_func
+from sklearn.metrics import recall_score
+from sklearn.metrics import f1_score
+from sklearn.metrics import precision_score
 
 """
 This class is a classifier using DTW as the distance measure between pairs of time series data.
@@ -41,9 +44,11 @@ class DTW:
             ndarray: The predicted class labels for the test data.
         """
         dist_matrix = self.compute_distance_matrix(test_data)
-
+        # the index of the k nearest neighbors
         indexes = dist_matrix.argsort()[:, :self.n_neighbors]
+        # identifiers the labels of neighbor
         labels = self.labels[indexes]
+        # get the majority votes between labels
         predictions = mode(labels, axis=1, keepdims=True)[0]
         return predictions
 
@@ -125,9 +130,11 @@ def test(user_id, data, labels, model, cross_validation_mode,LIMIT):
     model.fit(train_set, train_labels)
 
     predictions = model.predict(test_set)
-
     # Calculate the accuracy score and return it along with the predictions
     accuracy = accuracy_score(test_labels, predictions)
+    print("The user score {}: {}".format(user_id+1, accuracy))
+
+   
     return accuracy, predictions
 
 
@@ -151,10 +158,7 @@ def validation(dataset, labels, model, cross_validation_mode, LIMIT):
 
     for user_id in range(10):
         accuracy, prediction = test(user_id, data, labels, model, cross_validation_mode,LIMIT)
-        accuracies.append(accuracy)
-        predictions.append(prediction)
-        print("The user score {}: {}".format(user_id+1, accuracies[-1]))
-
+        accuracies.append(accuracy)  
     return
 
 def model_test(model, test_set_data, test_set_labels):
@@ -168,21 +172,33 @@ def model_test(model, test_set_data, test_set_labels):
 #      Launch     #
 """"""""""""""""""""
 if __name__ == '__main__':
-  # user independent cross_validation_mode=1
-  # user dependent cross_validation_mode=0
-  cross_validation_mode = 1
+    # user independent cross_validation_mode=1
+    # user dependent cross_validation_mode=0
+    cross_validation_mode = 1
 
-  dataset = shared_func.Dataset()
+    domain = 1
+    nr_model = 0
+    dataset = shared_func.Dataset(domain, nr_model)
   
-  model = DTW(n_neighbors=3)
-  data = dataset.data
-  train_set_data, train_set_labels, test_set_data, test_set_labels = shared_func.split_data(data, dataset.labels)
+    model = DTW(n_neighbors=3)
 
-  print(len(train_set_data))
-  print(len(train_set_labels))
-  validation(train_set_data, train_set_labels, model, cross_validation_mode, LIMIT=70)
+    data = dataset.data
+    train_set_data, train_set_labels, test_set_data, test_set_labels = shared_func.split_data(data, dataset.labels)
+
+    validation(train_set_data, train_set_labels, model, cross_validation_mode, LIMIT=80)
   
-  predictions = model_test(model,train_set_data,test_set_data)
+    predictions = model_test(model,test_set_data,test_set_labels)
 
-  # plot the confusion matrix of the 3-NN model 
-  shared_func.plot_conf_mat(np.array(test_set_labels), predictions, LIMIT= 30)
+    # plot the confusion matrix of the 3-NN model 
+    shared_func.plot_conf_mat(test_set_labels, np.array(predictions))
+    print("Model DTW measure from the confusion matrixe")
+    print()
+    print("The precision", precision_score(test_set_labels, predictions, average=None))
+    print()
+    print("The f1-score", f1_score(test_set_labels, predictions, average=None))
+    print()
+    print("The recall", recall_score(test_set_labels, predictions, average=None))
+    print()
+
+
+  

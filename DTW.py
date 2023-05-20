@@ -185,12 +185,12 @@ if __name__ == '__main__':
     data = dataset.data
     train_set_data, train_set_labels, test_set_data, test_set_labels = shared_func.split_data(data, dataset.labels)
 
-    validation(train_set_data, train_set_labels, model, cross_validation_mode, LIMIT=80)
+    validation(train_set_data, train_set_labels, model, cross_validation_mode, LIMIT=70)
   
     predictions = model_test(model,test_set_data,test_set_labels)
 
     # plot the confusion matrix of the 3-NN model 
-    shared_func.plot_conf_mat(test_set_labels, np.array(predictions))
+    shared_func.plot_conf_mat(test_set_labels, predictions)
     print("Model DTW measure from the confusion matrixe")
     print()
     print("The precision", precision_score(test_set_labels, predictions, average=None))

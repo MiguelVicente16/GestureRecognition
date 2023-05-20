@@ -89,14 +89,14 @@ def split_data(data, labels):
 
         for i in range(10):
             start = (user_id * 100) + (i * 10)
-            end = (user_id * 100) + (i * 10 + 8)
+            end = (user_id * 100) + (i * 10 + 7)
             # Select 7 samples for the training set
             train_samples = data[start:end]
             
             train_set.extend(train_samples)
             train_labels.extend(labels[start:end])
 
-            start = (user_id * 100) + (i * 10 + 8)
+            start = (user_id * 100) + (i * 10 + 7)
             end = (user_id * 100) + (i * 10 + 10)
 
             # Select 3 samples for the test set
@@ -149,7 +149,7 @@ def Leave_One_Out(user_id, dataset, labels, cross_validation_mode, LIMIT):
 
 def plot_conf_mat(true_labels, pred_labels):
     print("The confusion matrix of the model:")
-    indexes = range(0, len(pred_labels))
+    indexes = list(range(0, len(pred_labels)))
     conf_mat = confusion_matrix(true_labels[indexes], pred_labels[indexes])
     df_cm = pd.DataFrame(conf_mat, index=range(10), columns=range(10))
     plt.figure(figsize=(10, 7))

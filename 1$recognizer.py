@@ -51,13 +51,25 @@ def validation(data, labels, cross_validation_mode, model, LIMIT):
     predictions_per_users.append(predictions)
   return 
 
+"""
+Test the given model on the test data.
 
+Args:
+    model (object): The classification model.
+    test_set_data (ndarray): The test data for classification.
+    test_set_labels (ndarray): The corresponding labels for the test data.
+
+Returns:
+    ndarray: The predicted class labels for the test data.
+"""
 def model_test(model, test_set_data, test_set_labels):
-    
+    # Predict the labels for the test data using the trained model
     predictions = model.predict(test_set_data)
+    # Calculate the accuracy of the model by comparing the predicted labels with the true labels
     accuracy = accuracy_score(test_set_labels, predictions)
     print("The model score is: {}".format(accuracy))
-    return accuracy, predictions
+    # Return the predicted labels
+    return predictions
 
 
 """"""""""""""""""""
@@ -69,9 +81,15 @@ if __name__ == '__main__':
   # user dependent cross_validation_mode=0
   cross_validation_mode = 1
 
-  domain = 4
-  nr_model = 1
-  dataset = shared_func.Dataset(domain, nr_model) 
+  # domain 1 = 1 
+  # domain 4 = 4 
+  domain = 1
+
+  # std = 1 -> no standartization
+  # std = 0 -> standartization
+  std = 1
+
+  dataset = shared_func.Dataset(domain, std) 
 
   model = OneDollar()
 
@@ -79,14 +97,14 @@ if __name__ == '__main__':
 
   train_set_data, train_set_labels, test_set_data, test_set_labels = shared_func.split_data(data, dataset.labels)
 
-  validation(train_set_data, train_set_labels, cross_validation_mode, model ,LIMIT=80)
+  validation(train_set_data, train_set_labels, cross_validation_mode, model ,LIMIT=70)
 
-  predictions = model_test(model,test_set_data,train_set_labels)
+  predictions = model_test(model,test_set_data,test_set_labels)
 
-  shared_func.plot_conf_mat(test_set_labels, np.array(predictions))
+  shared_func.plot_conf_mat(test_set_labels, predictions,domain,std,cross_validation_mode)
   print("Model $P dollar measure from the confusion matrixes")
-  print("The precision", precision_score(train_set_labels, predictions, average=None))
-  print("The f1-score", f1_score(train_set_labels, predictions, average=None))
-  print("The recall", recall_score(train_set_labels, predictions, average=None))
+  print("The precision", precision_score(test_set_labels, predictions, average=None))
+  print("The f1-score", f1_score(test_set_labels, predictions, average=None))
+  print("The recall", recall_score(test_set_labels, predictions, average=None))
   print()
      

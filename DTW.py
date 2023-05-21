@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.metrics import accuracy_score
 from scipy.stats import mode
 import shared_func
 from sklearn.metrics import recall_score
@@ -114,9 +114,10 @@ Perform testing on a specific user's data using a given model.
 
 Args:
     user_id (int): The ID of the user.
-    dataset (ndarray): The dataset containing all the time series data.
+    data (ndarray): The dataset containing all the time series data.
     labels (ndarray): The corresponding labels for the dataset.
     model (object): The classification model.
+    cross_validation_mode (int): To choose between user dependent and independent
     LIMIT (int, optional): The maximum number of instances per user. Defaults to 100.
 
 Returns:
@@ -135,7 +136,7 @@ def test(user_id, data, labels, model, cross_validation_mode,LIMIT):
     print("The user score {}: {}".format(user_id+1, accuracy))
 
    
-    return accuracy, predictions
+    return accuracy
 
 
 """
@@ -145,6 +146,7 @@ Args:
     dataset (Dataset): An instance of the Dataset class.
     labels (list): The labels corresponding to each sequence in the dataset.
     model (object): The classification model.
+    cross_validation_mode (int): To choose between user dependent and independent
     LIMIT (int, optional): The maximum number of instances per user. Defaults to 100.
 
 Returns:
@@ -154,35 +156,55 @@ def validation(dataset, labels, model, cross_validation_mode, LIMIT):
     data = dataset
     labels = np.array(labels)
     accuracies = []
-    predictions = []
 
     for user_id in range(10):
-        accuracy, prediction = test(user_id, data, labels, model, cross_validation_mode,LIMIT)
+        accuracy = test(user_id, data, labels, model, cross_validation_mode,LIMIT)
         accuracies.append(accuracy)  
     return
 
+"""
+Test the given model on the test data.
+
+Args:
+    model (object): The classification model.
+    test_set_data (ndarray): The test data for classification.
+    test_set_labels (ndarray): The corresponding labels for the test data.
+
+Returns:
+    ndarray: The predicted class labels for the test data.
+"""
 def model_test(model, test_set_data, test_set_labels):
-    
+    # Predict the labels for the test data using the trained model
     predictions = model.predict(test_set_data)
+    # Calculate the accuracy of the model by comparing the predicted labels with the true labels
     accuracy = accuracy_score(test_set_labels, predictions)
     print("The model score is: {}".format(accuracy))
-    return accuracy, predictions
+    # Return the predicted labels
+    return predictions
 
 """"""""""""""""""""
 #      Launch     #
 """"""""""""""""""""
 if __name__ == '__main__':
-    # user independent cross_validation_mode=1
-    # user dependent cross_validation_mode=0
-    cross_validation_mode = 1
 
-    domain = 1
-    nr_model = 0
-    dataset = shared_func.Dataset(domain, nr_model)
-  
+    # domain 1 = 1 
+    # domain 4 = 4 
+    domain = 4
+
+    # std = 1 -> no standartization
+    # std = 0 -> standartization
+    std = 0
+
+    # cross_validation_mode = 1 -> user independent 
+    # cross_validation_mode = 0 -> user dependent 
+    cross_validation_mode = 0
+
+    dataset = shared_func.Dataset(domain, std)
+    data = dataset.data
+
+    # Initialize the model
     model = DTW(n_neighbors=3)
 
-    data = dataset.data
     train_set_data, train_set_labels, test_set_data, test_set_labels = shared_func.split_data(data, dataset.labels)
 
     validation(train_set_data, train_set_labels, model, cross_validation_mode, LIMIT=70)
@@ -190,7 +212,7 @@ if __name__ == '__main__':
     predictions = model_test(model,test_set_data,test_set_labels)
 
     # plot the confusion matrix of the 3-NN model 
-    shared_func.plot_conf_mat(test_set_labels, predictions)
+    shared_func.plot_conf_mat(test_set_labels, predictions,domain,std,cross_validation_mode)
     print("Model DTW measure from the confusion matrixe")
     print()
     print("The precision", precision_score(test_set_labels, predictions, average=None))

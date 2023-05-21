@@ -83,7 +83,7 @@ if __name__ == '__main__':
 
   # domain 1 = 1 
   # domain 4 = 4 
-  domain = 1
+  domain = 4
 
   # std = 1 -> no standartization
   # std = 0 -> standartization

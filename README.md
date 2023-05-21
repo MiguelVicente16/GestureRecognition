@@ -1,5 +1,3 @@
-Certainly! Here's an updated version of the README file that includes information about the datasets:
-
 # Gesture Recognition Models
 
 This repository contains implementations of two gesture recognition models: DTW (Dynamic Time Warping) and 1$ Recognizer. These models are designed to classify and recognize gestures based on time series data.
